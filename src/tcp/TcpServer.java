@@ -2,11 +2,11 @@ package tcp;
 
 import jdk.swing.interop.SwingInterOpUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import javax.xml.crypto.Data;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class TcpServer {
     private static final int SERVER_PORT = 8000;
@@ -26,22 +26,22 @@ public class TcpServer {
                 byte[] bytes = null;
                 String message = null;
 
-                InputStream is = socket.getInputStream();
-                bytes = new byte[is.available()];
+                DataInputStream dis = new DataInputStream(socket.getInputStream());
+                bytes = new byte[dis.available()];
 
-                int readByteCount = is.read(bytes);
-                message = new String(bytes, 0, readByteCount, "UTF-8");
+                int readByteCount = dis.read(bytes);
+                message = new String(bytes, 0, readByteCount, StandardCharsets.UTF_8);
 
                 System.out.println("[Message: " + message + "]");
 
-                OutputStream os = socket.getOutputStream();
-                bytes = message.getBytes("UTF-8");
+                DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+                bytes = message.getBytes(StandardCharsets.UTF_8);
 
-                os.write(bytes);
-                os.flush();
+                dos.write(bytes);
+                dos.flush();
 
-                is.close();
-                os.close();
+                dis.close();
+                dos.close();
                 socket.close();
             }
         } catch (IOException e) {

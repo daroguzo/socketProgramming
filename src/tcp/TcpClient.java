@@ -1,10 +1,9 @@
 package tcp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class TcpClient {
     private static final int SERVER_PORT = 8000;
@@ -21,31 +20,29 @@ public class TcpClient {
             byte[] bytes = null;
             String message = null;
 
-            OutputStream os = socket.getOutputStream();
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             message = "Hello, World!";
-            bytes = message.getBytes("UTF-8");
+            bytes = message.getBytes(StandardCharsets.UTF_8);
 
-            os.write(bytes);
-            os.flush();
+            dos.write(bytes);
+            dos.flush();
 
-            InputStream is = socket.getInputStream();
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
 
             Thread.sleep(2000);
 
-            System.out.println(is.available());
-            byte[] response = new byte[is.available()];
+            System.out.println(dis.available());
+            byte[] response = new byte[dis.available()];
 
-            int readByteCount = is.read(response);
-            String responseMessage = new String(response, 0, readByteCount, "UTF-8");
+            int readByteCount = dis.read(response);
+            String responseMessage = new String(response, 0, readByteCount, StandardCharsets.UTF_8);
             System.out.println("[Message: " + responseMessage + "]");
 
-            os.close();
-            is.close();
+            dos.close();
+            dis.close();
 
             socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 
