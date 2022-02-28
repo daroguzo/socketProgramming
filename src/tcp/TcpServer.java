@@ -23,14 +23,11 @@ public class TcpServer {
                 Socket socket = serverSocket.accept();
                 System.out.println("[접속된 IP: " + socket.getInetAddress() + "]");
 
-                byte[] bytes = null;
-                String message = null;
-
                 DataInputStream dis = new DataInputStream(socket.getInputStream());
-                bytes = new byte[dis.available()];
+                byte[] bytes = new byte[dis.available()];
 
                 int readByteCount = dis.read(bytes);
-                message = new String(bytes, 0, readByteCount, StandardCharsets.UTF_8);
+                String message = new String(bytes, 0, readByteCount, StandardCharsets.UTF_8);
 
                 System.out.println("[Message: " + message + "]");
 

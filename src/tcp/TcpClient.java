@@ -17,25 +17,26 @@ public class TcpClient {
             socket.connect(new InetSocketAddress("localhost", SERVER_PORT));
             System.out.println("[연결 성공]");
 
-            byte[] bytes = null;
-            String message = null;
-
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            message = "Hello, World!";
-            bytes = message.getBytes(StandardCharsets.UTF_8);
+            String message = "Hello, World!";
 
+            byte[] lengthBytes = Data.LENGTH_HEADER.getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+
+            dos.write(lengthBytes);
             dos.write(bytes);
             dos.flush();
 
-            DataInputStream dis = new DataInputStream(socket.getInputStream());
-
             Thread.sleep(2000);
 
-            System.out.println(dis.available());
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+
             byte[] response = new byte[dis.available()];
 
+            byte[] responseLengthBytes = dis.readNBytes(Integer.parseInt(Data.LENGTH_HEADER));
             int readByteCount = dis.read(response);
             String responseMessage = new String(response, 0, readByteCount, StandardCharsets.UTF_8);
+
             System.out.println("[Message: " + responseMessage + "]");
 
             dos.close();
