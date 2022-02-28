@@ -18,25 +18,23 @@ public class TcpClient {
             System.out.println("[연결 성공]");
 
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            String message = "Hello, World!";
 
-            byte[] lengthBytes = Data.LENGTH_HEADER.getBytes(StandardCharsets.UTF_8);
-            byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+            String message = "Java Socket!";
+            byte[] sendBytes = message.getBytes(StandardCharsets.UTF_8);
 
-            dos.write(lengthBytes);
-            dos.write(bytes);
+            dos.writeInt(sendBytes.length);
+            dos.write(sendBytes);
             dos.flush();
 
-            Thread.sleep(2000);
+            Thread.sleep(1000);
 
             DataInputStream dis = new DataInputStream(socket.getInputStream());
+            int responseMessageLength = dis.readInt();
 
-            byte[] response = new byte[dis.available()];
+            byte[] responseBytes = new byte[responseMessageLength];
+            dis.readFully(responseBytes, 0, responseMessageLength);
 
-            byte[] responseLengthBytes = dis.readNBytes(Integer.parseInt(Data.LENGTH_HEADER));
-            int readByteCount = dis.read(response);
-            String responseMessage = new String(response, 0, readByteCount, StandardCharsets.UTF_8);
-
+            String responseMessage = new String(responseBytes, 0, responseMessageLength, StandardCharsets.UTF_8);
             System.out.println("[Message: " + responseMessage + "]");
 
             dos.close();

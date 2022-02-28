@@ -1,9 +1,8 @@
 package tcp;
 
-import jdk.swing.interop.SwingInterOpUtils;
-
-import javax.xml.crypto.Data;
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -24,21 +23,24 @@ public class TcpServer {
                 System.out.println("[접속된 IP: " + socket.getInetAddress() + "]");
 
                 DataInputStream dis = new DataInputStream(socket.getInputStream());
-                byte[] bytes = new byte[dis.available()];
+                int responseMessageLength = dis.readInt();
 
-                int readByteCount = dis.read(bytes);
-                String message = new String(bytes, 0, readByteCount, StandardCharsets.UTF_8);
+                byte[] responseBytes = new byte[responseMessageLength];
+                dis.readFully(responseBytes, 0, responseMessageLength);
 
-                System.out.println("[Message: " + message + "]");
+                String responseMessage = new String(responseBytes, 0, responseMessageLength, StandardCharsets.UTF_8);
+                System.out.println("[Message: " + responseMessage + "]");
 
                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-                bytes = message.getBytes(StandardCharsets.UTF_8);
+                byte[] sendBytes = responseMessage.getBytes(StandardCharsets.UTF_8);
 
-                dos.write(bytes);
+                dos.writeInt(sendBytes.length);
+                dos.write(sendBytes);
                 dos.flush();
 
-                dis.close();
                 dos.close();
+                dis.close();
+
                 socket.close();
             }
         } catch (IOException e) {
