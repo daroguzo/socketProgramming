@@ -6,15 +6,37 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public class TcpServer {
-    private static final int SERVER_PORT = 8000;
+    private static final int FIXED_LENGTH = 10;
+    private static int SERVER_PORT;
+    private static final String LOG_PATH = "./log/socketProgramming.log";
 
     public static void main(String[] args) {
+        Logger logger = Logger.getLogger(TcpServer.class.getName());
+        FileHandler fileHandler;
         ServerSocket serverSocket = null;
 
+        // check args options
+        if (args.length != 1) {
+            System.out.println("옵션을 입력하세요");
+            System.exit(1);
+        }
+        SERVER_PORT = Integer.parseInt(args[0]);
+
         try {
+            // logger setting
+            fileHandler = new FileHandler(LOG_PATH, 1024*1024, 10, true);
+            logger.addHandler(fileHandler);
+            SimpleFormatter simpleFormatter = new SimpleFormatter();
+            fileHandler.setFormatter(simpleFormatter);
+
             serverSocket = new ServerSocket(SERVER_PORT);
+            logger.log(Level.INFO, "Server open");
 
             while (true) {
                 System.out.println("[연결 대기]");
@@ -23,18 +45,26 @@ public class TcpServer {
                 System.out.println("[접속된 IP: " + socket.getInetAddress() + "]");
 
                 DataInputStream dis = new DataInputStream(socket.getInputStream());
-                int responseMessageLength = dis.readInt();
 
-                byte[] responseBytes = new byte[responseMessageLength];
-                dis.readFully(responseBytes, 0, responseMessageLength);
+                byte[] lengthBytes = new byte[FIXED_LENGTH];
+                dis.readFully(lengthBytes);
 
-                String responseMessage = new String(responseBytes, 0, responseMessageLength, StandardCharsets.UTF_8);
+                String lengthBytesString = new String(lengthBytes);
+                byte[] responseBytes = new byte[Integer.parseInt(lengthBytesString)];
+                int read = dis.read(responseBytes);
+
+                String responseMessage = new String(responseBytes, 0, read, StandardCharsets.UTF_8);
                 System.out.println("[Message: " + responseMessage + "]");
+                logger.log(Level.INFO, "Message Receive");
+                logger.log(Level.INFO, "length/" + read + "" +
+                                "/data/" + responseMessage
+                        );
 
                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+
                 byte[] sendBytes = responseMessage.getBytes(StandardCharsets.UTF_8);
 
-                dos.writeInt(sendBytes.length);
+                dos.write(lengthBytes);
                 dos.write(sendBytes);
                 dos.flush();
 
@@ -45,13 +75,16 @@ public class TcpServer {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            logger.log(Level.WARNING, "Running IOException");
         }
 
         if (!serverSocket.isClosed()) {
             try {
                 serverSocket.close();
+                logger.log(Level.INFO, "Server close");
             } catch (IOException e) {
                 e.printStackTrace();
+                logger.log(Level.WARNING, "Closing IOException");
             }
         }
     }
