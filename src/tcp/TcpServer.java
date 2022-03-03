@@ -48,21 +48,26 @@ public class TcpServer {
 
                 byte[] lengthBytes = new byte[FIXED_LENGTH];
                 dis.readFully(lengthBytes);
-
                 String lengthBytesString = new String(lengthBytes);
+
                 byte[] responseBytes = new byte[Integer.parseInt(lengthBytesString)];
                 int read = dis.read(responseBytes);
+                String responseData = new String(responseBytes, 0, read, StandardCharsets.UTF_8);
 
-                String responseMessage = new String(responseBytes, 0, read, StandardCharsets.UTF_8);
-                System.out.println("[Message: " + responseMessage + "]");
+                String interfaceId = responseData.substring(0, 4);
+                String data = responseData.substring(4);
+
+                System.out.println("[Message: " + data + "]");
+
                 logger.log(Level.INFO, "Message Receive");
-                logger.log(Level.INFO, "length/" + read + "" +
-                                "/data/" + responseMessage
+                logger.log(Level.INFO, "length/" + read +
+                                "/interfaceId/" + interfaceId +
+                                "/data/" + responseData
                         );
 
                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
-                byte[] sendBytes = responseMessage.getBytes(StandardCharsets.UTF_8);
+                byte[] sendBytes = responseData.getBytes(StandardCharsets.UTF_8);
 
                 dos.write(lengthBytes);
                 dos.write(sendBytes);

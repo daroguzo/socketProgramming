@@ -1,13 +1,15 @@
 package tcp;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 public class TcpClient {
     private static final String SERVER_IP = "192.168.1.200";
-    private static final int SERVER_PORT = 8000;
+    private static final int SERVER_PORT = 20010;
     private static final int FIXED_LENGTH = 10;
 
     public static void main(String[] args) {
@@ -21,19 +23,27 @@ public class TcpClient {
 
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
-            StringBuilder sb = new StringBuilder();
+            String interfaceId = "0100";
             String message = "Java Socket!";
-            int messageLength = (int)(Math.log10(message.length()) + 1);
+            String data = interfaceId + message;
+            // 데이터 자릿수
+            int dataLength = (int)(Math.log10(data.length()) + 1);
 
-            for (int i = 0; i < (10 - messageLength); i++) {
+            // 길이부 0 채우기
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < (FIXED_LENGTH - dataLength); i++) {
                 sb.append("0");
             }
-            sb.append(message.length());
+            sb.append(data.length());
+
+            System.out.println(sb + data);
 
             byte[] lengthBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+            byte[] interfaceBytes = interfaceId.getBytes(StandardCharsets.UTF_8);
             byte[] sendMessageBytes = message.getBytes(StandardCharsets.UTF_8);
 
             dos.write(lengthBytes);
+            dos.write(interfaceBytes);
             dos.write(sendMessageBytes);
             dos.flush();
 
@@ -42,13 +52,19 @@ public class TcpClient {
             DataInputStream dis = new DataInputStream(socket.getInputStream());
 
             byte[] responseLengthBytes = new byte[FIXED_LENGTH];
-            dis.readFully(responseLengthBytes,0 , FIXED_LENGTH);
+            dis.readFully(responseLengthBytes);
             String lengthBytesString = new String(responseLengthBytes);
 
             byte[] responseBytes = new byte[Integer.parseInt(lengthBytesString)];
             int read = dis.read(responseBytes);
+            String responseData = new String(responseBytes, 0, read, StandardCharsets.UTF_8);
 
-            String responseMessage = new String(responseBytes, 0, read, StandardCharsets.UTF_8);
+            String responseInterfaceId = responseData.substring(0, 4);
+            String responseMessage = responseData.substring(4);
+
+            System.out.println("length/" + read +
+                    "/interfaceId/" + responseInterfaceId +
+                    "/data/" + responseMessage);
             System.out.println("[Message: " + responseMessage + "]");
 
             dos.close();
