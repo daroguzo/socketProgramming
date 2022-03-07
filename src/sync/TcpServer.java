@@ -1,4 +1,4 @@
-package tcp;
+package sync;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -62,8 +62,11 @@ public class TcpServer {
                 logger.log(Level.INFO, "Message Receive");
                 logger.log(Level.INFO, "length/" + read +
                                 "/interfaceId/" + interfaceId +
-                                "/data/" + responseData
+                                "/data/" + data
                         );
+
+
+                Thread.sleep(500);
 
                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
@@ -81,6 +84,9 @@ public class TcpServer {
         } catch (IOException e) {
             e.printStackTrace();
             logger.log(Level.WARNING, "Running IOException");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            logger.log(Level.WARNING, "Running InterruptedException");
         }
 
         if (!serverSocket.isClosed()) {

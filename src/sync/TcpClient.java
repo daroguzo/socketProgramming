@@ -1,4 +1,4 @@
-package tcp;
+package sync;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -23,10 +23,12 @@ public class TcpClient {
 
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
-            String interfaceId = "0100";
-            String message = "Java Socket!";
-            String data = interfaceId + message;
-            // 데이터 자릿수
+            String interfaceId = "0300";
+            // String message = "00001Java Socket!aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa123";
+            String name = "KIMJINWOO           ";
+            String phone = "0105548";
+            String data = interfaceId + name + phone;
+            // 데이터 자릿수``````````````````````
             int dataLength = (int)(Math.log10(data.length()) + 1);
 
             // 길이부 0 채우기
@@ -34,16 +36,17 @@ public class TcpClient {
             for (int i = 0; i < (FIXED_LENGTH - dataLength); i++) {
                 sb.append("0");
             }
-            sb.append(data.length());
+            // 길이부 포함
+            sb.append(data.length() + FIXED_LENGTH);
 
             System.out.println(sb + data);
 
             byte[] lengthBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-            byte[] interfaceBytes = interfaceId.getBytes(StandardCharsets.UTF_8);
-            byte[] sendMessageBytes = message.getBytes(StandardCharsets.UTF_8);
+//            byte[] interfaceBytes = interfaceId.getBytes(StandardCharsets.UTF_8);
+            byte[] sendMessageBytes = data.getBytes(StandardCharsets.UTF_8);
 
             dos.write(lengthBytes);
-            dos.write(interfaceBytes);
+//            dos.write(interfaceBytes);
             dos.write(sendMessageBytes);
             dos.flush();
 
@@ -62,6 +65,7 @@ public class TcpClient {
             String responseInterfaceId = responseData.substring(0, 4);
             String responseMessage = responseData.substring(4);
 
+            System.out.println();
             System.out.println("length/" + read +
                     "/interfaceId/" + responseInterfaceId +
                     "/data/" + responseMessage);
